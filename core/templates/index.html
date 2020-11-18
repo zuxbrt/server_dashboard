@@ -1,0 +1,438 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Administration</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <!-- vuejs -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <!-- chartjs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+    <link rel="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.css">
+    <!-- https://bernii.github.io/gauge.js/ -->
+    <script src="https://bernii.github.io/gauge.js/dist/gauge.min.js"></script>
+    <!-- font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+    <!-- axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js" integrity="sha384-LtrjvnR4Twt/qOuYxE721u19sVFLVSA4hf/rRt6PrZTmiPltdZcI7q7PXQBYTKyf" crossorigin="anonymous"></script>
+</head>
+
+<style>
+    body {
+        font-family: 'Roboto', serif;
+        font-size: 14px;
+        margin: 0;
+        padding: 0;
+        background-color: #fafafa;
+    }
+
+    #header{
+        background: white;
+        height: 50px;
+        box-shadow: 1px 3px 5px #27272780;
+        -webkit-box-shadow: 1px 3px 5px #27272780;
+        -moz-box-shadow: 1px 3px 5px #27272780;
+        position: relative;
+        z-index: 999999;
+        display: flex;
+        flex-direction: row;
+    }
+
+    #logout_button{
+        margin: 14px;
+    }
+
+    .container-title{
+        margin: 0;
+        padding: 16px;
+        user-select: none;
+    }
+
+    #app{
+        padding: 20px;
+        padding-top: 10px;
+        height: 100%;
+    }
+
+    .chart-wrapper{
+        position: relative;
+        text-align: center;
+    }
+
+    .row{
+        display: flex;
+        flex-direction: row;
+    }
+
+    .text-percentage{
+        margin: 0;
+        font-family: sans-serif;
+        text-align: center;
+        font-weight: bold;
+        user-select: none;
+    }
+
+    .perc-title{
+        text-align: center;
+        font-size: 16px;
+        user-select: none;
+    }
+
+    .small-perc-title{
+        text-align: center;
+        font-size: 14px;
+        user-select: none;
+    }
+
+    #refresh{
+        cursor: pointer;
+        user-select: none;
+        margin-top: 13px;
+    }
+
+    .loader {
+        width:50px;
+        height:50px;
+        display:inline-block;
+        padding:0px;
+        opacity:0.5;
+        border:3px solid #09acfd;
+        -webkit-animation: loader 1s ease-in-out infinite alternate;
+        animation: loader 1s ease-in-out infinite alternate;
+    }
+
+    .loader:before {
+        content: " ";
+        position: absolute;
+        z-index: -1;
+        top: 5px;
+        left: 5px;
+        right: 5px;
+        bottom: 5px;
+        border: 3px solid #09acfd;
+    }
+
+    .loader:after {
+        content: " ";
+        position: absolute;
+        z-index: -1;
+        top: 15px;
+        left: 15px;
+        right: 15px;
+        bottom: 15px;
+        border: 3px solid #09acfd;
+    }
+
+    @keyframes loader {
+        from {transform: rotate(0deg) scale(1,1);border-radius:0px;}
+        to {transform: rotate(360deg) scale(0, 0);border-radius:50px;}
+    }
+    @-webkit-keyframes loader {
+        from {-webkit-transform: rotate(0deg) scale(1, 1);border-radius:0px;}
+        to {-webkit-transform: rotate(360deg) scale(0,0 );border-radius:50px;}
+    }
+
+    .loader1 {
+        display:inline-block;
+        font-size:0px;
+        padding:0px;
+    }
+    .loader1 span {
+        vertical-align:middle;
+        border-radius:100%;
+        
+        display:inline-block;
+        width:10px;
+        height:10px;
+        margin:3px 2px;
+        -webkit-animation:loader1 0.8s linear infinite alternate;
+        animation:loader1 0.8s linear infinite alternate;
+    }
+
+    #loader-container{
+        background: white;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        z-index: 100000;
+        display: none;
+    }
+
+    #centered{
+        text-align: center;
+        margin-top: 25%;
+    }
+
+</style>
+
+<body>
+
+    <div id="header">
+        <p class="container-title">Dashboard</p>
+        <div id="refresh" class="ml-auto" v-on:click="getStats()">
+            <img width=25px height=25px src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Refresh_icon.svg/512px-Refresh_icon.svg.png">
+        </div>
+        <div id="logout_button">
+            <form action="{% url 'core:admin_logout'%}" method="post">
+                {% csrf_token %}
+                <input type="submit" value="Log out">
+            </form>
+        </div>
+    </div>
+
+    <!-- laoder -->
+    <div id="loader-container">
+        <div id="centered">
+            <div class="loader"></div>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+
+    <div id="app">
+
+        <!-- graphs -->
+        <div class="row justify-content-center">
+
+            <div class="chart-wrapper card p-2 m-2">
+                <p class="perc-title">CPU</p>
+                <p class="text-percentage">[[cpu_usage_percentage]]</p>
+                <canvas id="cpu_gauge"></canvas>
+            </div>
+
+            <div class="chart-wrapper card p-2 m-2">
+                <p class="perc-title">RAM</p>
+                <p class="text-percentage">[[ram_usage_percentage]]</p>
+                <canvas id="ram_gauge"></canvas>
+            </div>
+
+            <div class="chart-wrapper card p-2 m-2">
+
+                <p class="perc-title">Disk</p>
+
+                <canvas id="disk"></canvas>
+                <br>
+                <div class="row justify-content-center">
+                    <p class="small-perc-title">Used:</p>&nbsp;
+                    <p class="text-percentage">[[disk_used]] ([[disk_perc]])</p>
+                </div>
+                <div class="row justify-content-center">
+                    <p class="small-perc-title">Left:</p>&nbsp;
+                    <p class="text-percentage">[[disk_left]]</p>
+                </div>
+                <div class="row justify-content-center">
+                    <p class="small-perc-title">Total:</p>&nbsp;
+                    <p class="text-percentage">[[disk_total]]</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>
+
+<script>
+
+    var cpu_gauge;
+    var ram_gauge;
+
+
+    var app = new Vue({
+        delimiters: ['[[', ']]'],
+
+        el: '#app',
+
+        data: {
+            disks: [],
+            cpu_usage_percentage: '',
+            ram_usage_percentage: '',
+            disk_used: null,
+            disk_left: null,
+            disk_total: null,
+            disk_perc: null, 
+        },
+
+        created: function(){
+            var self = this;
+            setInterval(function() {
+                self.getStats()
+            }, 5000);
+        },
+
+        mounted: function () {
+            var self = this;
+            setTimeout(function(){
+                var cpu_stats = JSON.parse('{{ cpu_usage|safe }}');
+                var used_ram = JSON.parse('{{ used_ram|safe }}');
+                var free_ram = JSON.parse('{{ free_ram|safe }}');
+                var disk_usage_stats = JSON.parse('{{ disk_usage|safe }}');
+
+                if(cpu_stats && used_ram && free_ram && disk_usage_stats){
+                    self.loadStats({
+                        cpu_stats: cpu_stats,
+                        used_ram: used_ram,
+                        free_ram: free_ram,
+                        disk_usage_stats: disk_usage_stats
+                    })
+                }
+                document.getElementById('loader-container').style = "display: none";
+            }, 2000);
+        },
+
+        methods: {
+            // get stats
+            getStats(){
+                axios.get('/getstats').then(response => (
+                    this.updateStats(response.data))
+                    )
+            },
+
+            // load init stats
+            loadStats(data){
+                this.createGaguge(100, data.cpu_stats, 'cpu_gauge')
+                this.createGaguge(Math.round(data.used_ram + data.free_ram), data.used_ram, 'ram_gauge')
+                this.cpu_usage_percentage = data.cpu_stats + '%';
+                this.ram_usage_percentage = data.used_ram + '%';
+
+                for (const [key, disk] of Object.entries(data.disk_usage_stats)) {
+                    if(disk.mountpoint == '/'){
+                        let labels = ['Used', "Free"];
+                        let data = [parseInt(disk.used.slice(0, -1)), parseInt(disk.free.slice(0, -1))];
+                        this.createPieChart('disk', labels, data, false);
+                        this.disk_left = disk.free;
+                        this.disk_used = disk.used;
+                        this.disk_total = disk.total;
+                        this.disk_perc = disk.percent + '%';
+                    }
+                }
+            },
+
+            // update usage stats
+            updateStats(data){
+                cpu_gauge.set(data.cpu_usage);
+                ram_gauge.set(data.used_ram);
+                this.cpu_usage_percentage = parseInt(data.cpu_usage) + '%';
+                this.ram_usage_percentage = parseInt(data.used_ram) + '%';
+            },
+
+            // create piechart
+            createPieChart(id, labels, data, showlabels=true){
+                var ctx = document.getElementById(id);
+                var myChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '# of Votes',
+                            data: data,
+                            backgroundColor: [
+                                '#E57373',
+                                '#E3F2FD'
+                                //'rgba(255, 99, 132, 0.2)',
+                                //'rgba(54, 162, 235, 0.2)'
+                            ],
+                            borderColor: [
+                                '#E57373',
+                                '#E3F2FD',
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            yAxes: [{
+                                gridLines: {
+                                    display: false,
+                                },
+                                ticks: {
+                                    beginAtZero: true,
+                                    display: false
+                                }
+                            }],
+                            xAxes: [{
+                                gridLines: {
+                                    display: false,
+                                },
+                                ticks: {
+                                    beginAtZero: true,
+                                    display: false
+                                }
+                            }]
+                        },
+                        legend: {
+                            display: false
+                        },
+                        tooltips: 
+                        {
+                            callbacks: {
+                                label: function(tooltipItem, data) {
+                                    var dataset = data.datasets[tooltipItem.datasetIndex];
+                                    var total = dataset.data.reduce(function(previousValue, currentValue, currentIndex, array) {
+                                        return previousValue + currentValue;
+                                    });
+                                    var currentValue = dataset.data[tooltipItem.index];
+                                    var percentage = Math.floor(((currentValue/total) * 100)+0.5);   
+                                    return percentage + "%";
+                                },
+                                title: function(tooltipItem, data) {
+                                    return data.labels[tooltipItem[0].index];
+                                }
+                                
+                            }
+                        }
+                    }
+                });
+            },
+
+            // create gauge
+            createGaguge(max, value, id){
+                var opts = {
+                    angle: 0.15, // The span of the gauge arc
+                    lineWidth: 0.44, // The line thickness
+                    radiusScale: 1, // Relative radius
+                    pointer: {
+                        length: 0.6, // // Relative to gauge radius
+                        strokeWidth: 0.035, // The thickness
+                        color: '#000000' // Fill color
+                    },
+                    limitMax: false,     // If false, max value increases automatically if value > maxValue
+                    limitMin: false,     // If true, the min value of the gauge will be fixed
+                    colorStart: '#6FADCF',   // Colors
+                    colorStop: '#8FC0DA',    // just experiment with them
+                    strokeColor: '#E0E0E0',  // to see which ones work best for you
+                    generateGradient: true,
+                    highDpiSupport: true,     // High resolution support
+                };
+                if(id == 'ram_gauge'){
+                    var target = document.getElementById(id); // your canvas element
+                    ram_gauge = new Gauge(target).setOptions(opts); // create sexy gauge!
+                    ram_gauge.maxValue = max; // set max gauge value
+                    ram_gauge.setMinValue(0);  // Prefer setter over gauge.minValue = 0
+                    ram_gauge.animationSpeed = 32; // set animation speed (32 is default value)
+                    ram_gauge.set(value); // set actual value
+                } else {
+                    var target = document.getElementById(id); // your canvas element
+                    cpu_gauge = new Gauge(target).setOptions(opts); // create sexy gauge!
+                    cpu_gauge.maxValue = max; // set max gauge value
+                    cpu_gauge.setMinValue(0);  // Prefer setter over gauge.minValue = 0
+                    cpu_gauge.animationSpeed = 32; // set animation speed (32 is default value)
+                    cpu_gauge.set(value); // set actual value
+                }
+                
+            }
+        }
+    });
+
+</script>

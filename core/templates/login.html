@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title></title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js" integrity="sha384-LtrjvnR4Twt/qOuYxE721u19sVFLVSA4hf/rRt6PrZTmiPltdZcI7q7PXQBYTKyf" crossorigin="anonymous"></script>
+</head>
+<style>
+    body {
+        background-color: #fafafa;
+    }
+    #container{
+        padding: 20px;
+    }
+    .login-input{
+        border: none;
+        margin: 5px;
+        padding: 5px;
+        font-size: 16px;
+        width: 100%;
+    }
+    #login-form{
+        width: 400px;
+        padding: 15px;
+        margin: auto;
+        margin-top: 15%;
+        background: white;
+    }
+    .input-wrap{
+        margin-bottom: 5px;
+        position: relative;
+    }
+    .input-centered{
+        position: relative;
+        display: block;
+        margin: auto;
+    }
+</style>
+<body>
+    <div id="container">
+
+        <div id="login-form" class="card">
+
+            <form action="{% url 'core:admin_login'%}" method="post">
+                {% csrf_token %}
+                <div class="input-wrap">
+                    <input class="form-control" type="text" name="username" id="username" placeholder="Username" autocomplete="username"/> 
+                </div>
+                <div class="input-wrap">
+                    <input class="form-control" type="password" name="password" id="password" placeholder="Password"/ autocomplete="offx"> 
+                </div>
+                <input class="btn btn-dark btn-block mt-4" type="submit" value="Login">
+            </form>
+
+            {% if error_message %} <p class="m-0 mt-3 text-center">{{ error_message }}</p> {% endif %}
+
+        </div>
+
+    </div>
+</body>
+</html>
